@@ -1,0 +1,22 @@
+{
+    "compilerOptions": {
+        "target": "ES2022",
+        "module": "ESNext",
+        "moduleResolution": "bundler",
+        "jsx": "react-jsx",
+        "baseUrl": ".",
+        "paths": {
+            "react-devtools-core": ["./src/stubs/react-devtools-core.ts"]
+        },
+        "strict": true,
+        "esModuleInterop": true,
+        "allowSyntheticDefaultImports": true,
+        "skipLibCheck": true,
+        "resolveJsonModule": true,
+        "verbatimModuleSyntax": false,
+        "types": ["bun-types", "react"],
+        "lib": ["ES2022"],
+        "noEmit": true
+    },
+    "include": ["src"]
+}

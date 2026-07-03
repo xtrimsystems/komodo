@@ -1,0 +1,16 @@
+node_modules/
+dist/
+*.log
+.DS_Store
+
+# Editor / IDE (contain local absolute paths)
+.idea/
+.vscode/
+
+# Build + scratch artifacts
+komodo-linux-*
+komodo-darwin-*
+komodo-windows-*
+*.sha256
+scratch_*
+scripts/__pycache__/

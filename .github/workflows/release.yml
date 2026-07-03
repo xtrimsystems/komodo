@@ -1,0 +1,39 @@
+name: release
+
+# Tag a version (e.g. `git tag v0.1.0 && git push --tags`) to build the binaries
+# and attach them to a GitHub Release. install.sh downloads these assets.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+
+      - run: bun install --frozen-lockfile
+
+      # Bun cross-compiles all targets from one runner. Trim this list if you
+      # only need your own platform.
+      - name: Build binaries
+        run: |
+          set -eu
+          build() {
+            bun build src/cli.tsx --compile --target="$1" --outfile "$2"
+            sha256sum "$2" > "$2.sha256"
+          }
+          build bun-linux-x64     komodo-linux-x64
+          build bun-linux-arm64   komodo-linux-arm64
+          build bun-darwin-x64    komodo-darwin-x64
+          build bun-darwin-arm64  komodo-darwin-arm64
+
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: komodo-*
+          generate_release_notes: true

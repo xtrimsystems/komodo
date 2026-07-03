@@ -29,8 +29,36 @@ The whole UI is height-budgeted to the terminal and clips instead of overflowing
 
 ## Requirements
 
-- [bun](https://bun.sh) (for dev / building) — the shipped binary needs nothing.
+- [bun](https://bun.sh) — only needed to build from source; the prebuilt binary (via the installer below) needs nothing.
 - Docker with a reachable socket, and your user in the `docker` group.
+
+## Install
+
+### Quick install (prebuilt binary)
+
+No toolchain required — this downloads the binary for your OS/arch, verifies its checksum, and drops it in `~/.local/bin`:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/xtrimsystems/komodo/main/install.sh | sh
+```
+
+- System-wide instead: prefix with `PREFIX=/usr/local` (may need `sudo`).
+- Pin a version: `KOMODO_VERSION=v0.1.0`.
+- If `~/.local/bin` isn't on your `PATH`, the script prints the line to add.
+
+Once installed, update in place with `komodo --update` — komodo also checks for new releases in the background and hints when one is available.
+
+### From source
+
+Requires [bun](https://bun.sh). Clone, then build and install a standalone binary onto your `PATH`:
+
+```sh
+git clone https://github.com/xtrimsystems/komodo.git
+cd komodo
+make install
+```
+
+Use `make install-bin` instead to symlink `dist/komodo` into `~/.local/bin` (handy while hacking — a fresh `make build` is picked up live). Add `PREFIX=/usr/local` for a system-wide copy.
 
 ## Usage
 
@@ -44,18 +72,16 @@ make install-bin    # dev install: symlink dist/komodo into ~/.local/bin (live r
 make uninstall      # remove the installed binary
 ```
 
-`make install` copies a standalone binary into `~/.local/bin` (override with
-`PREFIX=/usr/local make install` for a system-wide install). If that directory
-isn't on your `PATH`, the script prints the line to add to your shell rc.
-
 Once installed on your `PATH`:
 
 ```sh
-komodo             # launch the TUI
-komodo --list      # headless table of projects + status
-komodo --json      # same, as JSON
-komodo --version   # tool + docker engine version
-komodo --config    # print config path + current config
+komodo                 # launch the TUI
+komodo --list          # headless table of projects + status
+komodo --json          # same, as JSON
+komodo --version       # tool + docker engine version
+komodo --config        # print config path + current config
+komodo --check-update  # check whether a newer release exists
+komodo --update        # download + swap in the latest release
 ```
 
 ## Keybindings

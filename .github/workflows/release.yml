@@ -2,6 +2,8 @@ name: release
 
 # Tag a version (e.g. `git tag v0.1.0 && git push --tags`) to build the binaries
 # and attach them to a GitHub Release. install.sh downloads these assets.
+# The release only publishes if `test` passes on the tagged commit, so a broken
+# build is never shipped to installs via auto-update.
 on:
   push:
     tags: ["v*"]
@@ -10,7 +12,17 @@ permissions:
   contents: write
 
 jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - run: bunx tsc --noEmit
+      - run: bun test
+
   release:
+    needs: test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7

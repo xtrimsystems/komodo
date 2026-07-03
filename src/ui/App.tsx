@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Box, Text, useApp, useInput, useStdout } from "ink";
+import Spinner from "ink-spinner";
 import { existsSync } from "fs";
 import { dirname } from "path";
 import { saveFavorites, updateConfig, type Config } from "../config.js";
@@ -17,7 +18,7 @@ import {
     composeUp,
     makeRun,
 } from "../docker/actions.js";
-import { checkForUpdateCached } from "../update.js";
+import { applyUpdate, checkForUpdateCached } from "../update.js";
 import { fuzzyFilter } from "./filter.js";
 import { buildSections, orderedItems } from "./sections.js";
 import { projectColor } from "./theme.js";
@@ -44,6 +45,7 @@ interface Props {
     composeVersion: string | null;
     firstRun: boolean;
     onSuspend: (req: SuspendRequest) => void;
+    onRelaunch: () => void;
 }
 
 type Screen =
@@ -96,6 +98,7 @@ export default function App({
     composeVersion,
     firstRun,
     onSuspend,
+    onRelaunch,
 }: Props) {
     const { exit } = useApp();
     const { rows: termRows, columns: termCols } = useTerminalSize();
@@ -138,6 +141,11 @@ export default function App({
 
     // Newer version available (from a throttled once-a-day background check).
     const [updateAvailable, setUpdateAvailable] = useState<string | null>(null);
+    // In-app updater overlay state.
+    const [updatingActive, setUpdatingActive] = useState(false);
+    const [updateLog, setUpdateLog] = useState<string[]>([]);
+    const [updateResult, setUpdateResult] = useState<"ok" | "fail" | null>(null);
+    const [updatedTo, setUpdatedTo] = useState<string | null>(null);
 
     const [output, setOutput] = useState<string[]>([]);
     const [logLines, setLogLines] = useState<string[]>([]);
@@ -476,6 +484,18 @@ export default function App({
         rescan(roots);
     }, [roots, rescan]);
 
+    const startUpdate = useCallback(() => {
+        setUpdatingActive(true);
+        setUpdateLog([]);
+        setUpdateResult(null);
+        void applyUpdate((line) => setUpdateLog((prev) => [...prev, line]))
+            .then((ok) => {
+                setUpdateResult(ok ? "ok" : "fail");
+                if (ok) setUpdatedTo((v) => updateAvailable ?? v);
+            })
+            .catch(() => setUpdateResult("fail"));
+    }, [updateAvailable]);
+
     // ---- input ------------------------------------------------------------
     useInput((input, key) => {
         // Global quit.
@@ -491,6 +511,21 @@ export default function App({
         }
         if (input === "?" && !filterActive && !paletteActive) {
             setHelpActive(true);
+            return;
+        }
+
+        // In-app updater overlay.
+        if (updatingActive) {
+            if (updateResult === null) return; // download in progress — ignore keys
+            if (updateResult === "ok" && key.return) {
+                onRelaunch();
+                return;
+            }
+            setUpdatingActive(false); // any other key dismisses once finished
+            return;
+        }
+        if (input === "U" && updateAvailable && !updatedTo && !filterActive && !paletteActive) {
+            startUpdate();
             return;
         }
 
@@ -684,11 +719,16 @@ export default function App({
         (screen.kind === "list" || screen.kind === "settings") &&
         !paletteActive &&
         !helpActive &&
+        !updatingActive &&
         rows >= BANNER_ROWS + 6 &&
         columns >= BANNER_COLS;
     // A one-line "update available" hint on the home screen (height-accounted).
     const showUpdateNotice =
-        screen.kind === "list" && !!updateAvailable && !paletteActive && !helpActive;
+        screen.kind === "list" &&
+        !!updateAvailable &&
+        !paletteActive &&
+        !helpActive &&
+        !updatingActive;
     const bodyRows = Math.max(
         3,
         rows - (showBanner ? BANNER_ROWS + 2 : 3) - (showUpdateNotice ? 1 : 0),
@@ -698,7 +738,56 @@ export default function App({
     let footer: React.ReactNode;
     let body: React.ReactNode;
 
-    if (helpActive) {
+    if (updatingActive) {
+        header = (
+            <Header
+                columns={columns}
+                left={
+                    <Text>
+                        <Text color="cyan">↑ </Text>
+                        <Text bold>Updating komodo</Text>
+                        {updateAvailable ? <Text color="gray"> → {updateAvailable}</Text> : null}
+                    </Text>
+                }
+            />
+        );
+        body = (
+            <Box flexDirection="column" height={bodyRows}>
+                {updateLog.map((l, i) => (
+                    <Text key={i} color="gray" wrap="truncate-end">
+                        {l}
+                    </Text>
+                ))}
+                {updateResult === null ? (
+                    <Text color="yellow">
+                        {"  "}
+                        <Spinner type="dots" /> working…
+                    </Text>
+                ) : null}
+                {updateResult === "ok" ? (
+                    <Text color="green">{"  "}✓ done — restart to run the new version</Text>
+                ) : null}
+                {updateResult === "fail" ? (
+                    <Text color="red">{"  "}✗ update failed</Text>
+                ) : null}
+            </Box>
+        );
+        footer = (
+            <Footer columns={columns}>
+                {updateResult === null ? (
+                    "downloading — please wait"
+                ) : updateResult === "ok" ? (
+                    <>
+                        <Key k="⏎" /> restart now · <Key k="esc" /> restart later
+                    </>
+                ) : (
+                    <>
+                        <Key k="esc" /> dismiss
+                    </>
+                )}
+            </Footer>
+        );
+    } else if (helpActive) {
         header = (
             <Header
                 columns={columns}
@@ -937,9 +1026,16 @@ export default function App({
             </Box>
             {showUpdateNotice ? (
                 <Box width={columns}>
-                    <Text color="yellow" wrap="truncate-end">
-                        ↑ komodo {updateAvailable} available — run <Text bold>komodo --update</Text>
-                    </Text>
+                    {updatedTo ? (
+                        <Text color="green" wrap="truncate-end">
+                            ✓ updated to {updatedTo} — restart komodo to apply
+                        </Text>
+                    ) : (
+                        <Text color="yellow" wrap="truncate-end">
+                            ↑ komodo {updateAvailable} available — press <Text color="cyan">U</Text> to
+                            update
+                        </Text>
+                    )}
                 </Box>
             ) : null}
             {footer}

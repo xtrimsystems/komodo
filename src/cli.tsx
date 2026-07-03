@@ -116,6 +116,7 @@ async function main() {
         // Recomputed each iteration: once setup writes the config, later remounts skip it.
         const firstRun = !configExists();
         let pending: SuspendRequest | null = null;
+        let relaunch = false;
         let instance!: ReturnType<typeof render>;
         instance = render(
             <App
@@ -128,9 +129,25 @@ async function main() {
                     pending = req;
                     instance.unmount();
                 }}
+                onRelaunch={() => {
+                    relaunch = true;
+                    instance.unmount();
+                }}
             />,
         );
         await instance.waitUntilExit();
+
+        // The app self-updated its own binary and asked to restart into it.
+        if (relaunch) {
+            leaveAltScreen();
+            const child = Bun.spawn([process.execPath], {
+                stdin: "inherit",
+                stdout: "inherit",
+                stderr: "inherit",
+            });
+            process.exit(await child.exited);
+        }
+
         if (!pending) break;
 
         const req: SuspendRequest = pending;

@@ -17,7 +17,7 @@ import { VERSION } from "./version.js";
 export const REPO = process.env.KOMODO_REPO || "xtrimsystems/komodo";
 
 const CACHE_PATH = join(CONFIG_DIR, "update.json");
-const CHECK_INTERVAL_MS = 24 * 60 * 60 * 1000; // once a day
+const CHECK_INTERVAL_MS = 60 * 60 * 1000; // at most once an hour
 
 /** Compare two versions ("v1.2.3" or "1.2.3"); >0 if a is newer than b. */
 export function compareVersions(a: string, b: string): number {

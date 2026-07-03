@@ -46,7 +46,7 @@ curl -fsSL https://raw.githubusercontent.com/xtrimsystems/komodo/main/install.sh
 - Pin a version: `KOMODO_VERSION=v0.1.0`.
 - If `~/.local/bin` isn't on your `PATH`, the script prints the line to add.
 
-Once installed, update in place with `komodo --update` — or press `U` on the in-app hint. komodo checks for new releases in the background (once a day) and hints when one is available; set `KOMODO_NO_UPDATE=1` to disable that check.
+Once installed, update in place with `komodo --update` — or press `U` on the in-app hint. komodo checks for new releases in the background (at most once an hour) and hints when one is available; set `KOMODO_NO_UPDATE=1` to disable that check.
 
 ### From source
 

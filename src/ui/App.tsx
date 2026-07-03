@@ -139,7 +139,7 @@ export default function App({
     // Logs screen scroll: lines up from the bottom (0 = tail / follow).
     const [logsScroll, setLogsScroll] = useState(0);
 
-    // Newer version available (from a throttled once-a-day background check).
+    // Newer version available (from a throttled hourly background check).
     const [updateAvailable, setUpdateAvailable] = useState<string | null>(null);
     // In-app updater overlay state.
     const [updatingActive, setUpdatingActive] = useState(false);

@@ -84,6 +84,15 @@ komodo --check-update  # check whether a newer release exists
 komodo --update        # download + swap in the latest release
 ```
 
+## Releasing
+
+Releases are cut by CI, not by hand — you never run `git tag`:
+
+1. Bump `VERSION` in `src/version.ts`.
+2. Commit and push to `main`.
+
+The release workflow runs the tests; **only if they pass** and that version has no tag yet does it create the `vX.Y.Z` tag, cross-compile the binaries, and publish the GitHub Release. A failing test suite therefore can't produce a tag or ship a binary to `komodo --update`.
+
 ## Keybindings
 
 **List screen**

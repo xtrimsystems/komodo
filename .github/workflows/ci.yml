@@ -1,8 +1,11 @@
 name: ci
 
+# Checks for pull requests and non-main branches. Pushes to main are checked by
+# the release workflow (which also tags + publishes when the version is bumped),
+# so main isn't duplicated here.
 on:
   push:
-    branches: [main]
+    branches-ignore: [main]
   pull_request:
     branches: [main]
 

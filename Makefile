@@ -38,6 +38,10 @@ build: ## Compile a self-contained binary to dist/komodo
 typecheck: ## Type-check with tsc (no emit)
 	bunx tsc --noEmit
 
+.PHONY: test
+test: ## Run the unit tests (bun test)
+	bun test
+
 .PHONY: install-bin
 install-bin: build ## Dev install: symlink the binary into ~/.local/bin (live rebuilds)
 	mkdir -p $(HOME)/.local/bin

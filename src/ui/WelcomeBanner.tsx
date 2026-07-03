@@ -29,7 +29,6 @@ export default function WelcomeBanner({
     totalContainers,
     folderCount,
 }: Props) {
-    // Line 1: engine + compose versions. Line 2: what komodo currently sees.
     const versions =
         `${engineOk && engineVersion ? `docker ${engineVersion}` : "docker ✗"}` +
         ` · ${composeVersion ? `compose ${composeVersion}` : "compose ✗"}`;

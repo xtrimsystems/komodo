@@ -3,6 +3,7 @@
     "version": "0.1.0",
     "description": "A rich terminal UI for managing docker-compose / Makefile projects",
     "type": "module",
+    "license": "MIT",
     "bin": {
         "komodo": "./dist/komodo"
     },
@@ -10,7 +11,8 @@
         "dev": "bun run src/cli.tsx",
         "start": "bun run src/cli.tsx",
         "build": "bun build src/cli.tsx --compile --outfile dist/komodo",
-        "typecheck": "tsc --noEmit"
+        "typecheck": "tsc --noEmit",
+        "test": "bun test"
     },
     "dependencies": {
         "ink": "^5.1.0",

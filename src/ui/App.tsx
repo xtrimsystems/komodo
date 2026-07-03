@@ -5,7 +5,7 @@ import { existsSync } from "fs";
 import { dirname } from "path";
 import { saveFavorites, updateConfig, type Config } from "../config.js";
 import type { Container, MakeTarget, Project, ProjectView } from "../model/types.js";
-import { DockerEngine } from "../docker/engine.js";
+import { DockerEngine, type ContainerStats } from "../docker/engine.js";
 import { discoverProjects } from "../discovery/scan.js";
 import { listSubdirs } from "../discovery/browse.js";
 import { reconcile, serviceRows, type ServiceRow } from "../model/state.js";
@@ -147,6 +147,8 @@ export default function App({
     const [updateResult, setUpdateResult] = useState<"ok" | "fail" | null>(null);
     const [updatedTo, setUpdatedTo] = useState<string | null>(null);
 
+    const [containerStats, setContainerStats] = useState<Record<string, ContainerStats>>({});
+
     const [output, setOutput] = useState<string[]>([]);
     const [logLines, setLogLines] = useState<string[]>([]);
     const [busy, setBusy] = useState<Record<string, string>>({});
@@ -155,6 +157,7 @@ export default function App({
     const pollingRef = useRef(false);
     const refreshTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
     const logsReturn = useRef<Screen>({ kind: "list" });
+    const detailContainersRef = useRef<Container[]>([]);
 
     // ---- data -------------------------------------------------------------
     const views = useMemo(() => reconcile(projects, containers), [projects, containers]);
@@ -192,6 +195,7 @@ export default function App({
             : undefined;
     const rowsForDetail: ServiceRow[] = detailProject ? serviceRows(detailProject) : [];
     const selectedService = rowsForDetail[serviceIndex]?.name;
+    detailContainersRef.current = detailProject?.containers ?? [];
 
     const paletteProject = screen.kind === "list" ? current : detailProject;
     const paletteList = useMemo(
@@ -252,6 +256,7 @@ export default function App({
 
     // Non-blocking, throttled check for a newer release (only surfaces a hint).
     useEffect(() => {
+        if (process.env.KOMODO_NO_UPDATE) return;
         let alive = true;
         void checkForUpdateCached()
             .then((v) => {
@@ -262,6 +267,30 @@ export default function App({
             alive = false;
         };
     }, []);
+
+    useEffect(() => {
+        if (screen.kind !== "detail") {
+            setContainerStats({});
+            return;
+        }
+        let alive = true;
+        const poll = async () => {
+            const running = detailContainersRef.current.filter((c) => c.state === "running");
+            const readings = await Promise.all(
+                running.map(async (c) => [c.id, await engine.stats(c.id)] as const),
+            );
+            if (!alive) return;
+            const next: Record<string, ContainerStats> = {};
+            for (const [id, s] of readings) if (s) next[id] = s;
+            setContainerStats(next);
+        };
+        void poll();
+        const timer = setInterval(() => void poll(), 2500);
+        return () => {
+            alive = false;
+            clearInterval(timer);
+        };
+    }, [screen, engine]);
 
     // Events stream (instant status) with a slow safety poll; fall back to polling on error.
     useEffect(() => {
@@ -876,6 +905,7 @@ export default function App({
                 columns={columns}
                 output={output}
                 scroll={outputScroll}
+                stats={containerStats}
                 busyLabel={busy[detailProject.dir]}
             />
         );

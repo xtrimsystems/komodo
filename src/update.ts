@@ -13,14 +13,14 @@ import { createHash } from "crypto";
 import { CONFIG_DIR } from "./config.js";
 import { VERSION } from "./version.js";
 
-/** GitHub repo that hosts the releases. */
-export const REPO = "xtrimsystems/komodo";
+/** GitHub repo that hosts the releases (override with KOMODO_REPO). */
+export const REPO = process.env.KOMODO_REPO || "xtrimsystems/komodo";
 
 const CACHE_PATH = join(CONFIG_DIR, "update.json");
 const CHECK_INTERVAL_MS = 24 * 60 * 60 * 1000; // once a day
 
 /** Compare two versions ("v1.2.3" or "1.2.3"); >0 if a is newer than b. */
-function compareVersions(a: string, b: string): number {
+export function compareVersions(a: string, b: string): number {
     const pa = a.replace(/^v/, "").split(".").map((n) => parseInt(n, 10) || 0);
     const pb = b.replace(/^v/, "").split(".").map((n) => parseInt(n, 10) || 0);
     for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
@@ -104,7 +104,6 @@ export async function applyUpdate(onLog: (line: string) => void): Promise<boolea
         return true;
     }
 
-    // The file we replace is the running binary itself (resolve any symlink).
     let target: string;
     try {
         target = realpathSync(process.execPath);
@@ -131,7 +130,6 @@ export async function applyUpdate(onLog: (line: string) => void): Promise<boolea
         return false;
     }
 
-    // Verify the checksum when the release publishes one.
     try {
         const sres = await fetch(`${base}/${asset}.sha256`);
         if (sres.ok) {

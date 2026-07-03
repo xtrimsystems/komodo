@@ -84,7 +84,6 @@ export function bannerLines(statusLines: string[], version: string): string[] {
     const rightW = RIGHT_W;
     const leftW = Math.max(KOMODO_WIDTH, ...statusLines.map((s) => s.length));
 
-    // Right column: the "Komodo" wordmark, a rule, then the getting-started tips.
     const right: { s: string; w: number }[] = [
         ...WORD_LINES.map((l) => ({ s: l, w: WORD_WIDTH })),
         { s: BORDER + "─".repeat(rightW) + R, w: rightW }, // horizontal line under the title
@@ -95,7 +94,6 @@ export function bannerLines(statusLines: string[], version: string): string[] {
         })),
     ];
 
-    // Left column: the logo, with the docker/status lines moved underneath it.
     const left: { s: string; w: number }[] = [
         ...KOMODO_LINES.map((l) => ({ s: l, w: KOMODO_WIDTH })),
         ...statusLines.map((s) => ({ s: DIM + s + R, w: s.length })),
@@ -106,7 +104,6 @@ export function bannerLines(statusLines: string[], version: string): string[] {
     const total = innerW + 2;
     const sep = " " + BORDER + "│" + R + " "; // vertical rule, display width SEP_W
     const out: string[] = [];
-    // top border with the version centered in it
     const vseg = " " + version + " ";
     const lPad = Math.max(0, Math.floor((total - vseg.length) / 2));
     const rPad = Math.max(0, total - vseg.length - lPad);

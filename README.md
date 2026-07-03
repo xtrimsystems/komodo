@@ -22,7 +22,7 @@ The welcome banner is a pixel-art **komodo dragon** rendered in truecolor half-b
 komodo is screen-based rather than cramming everything into one view:
 
 - **List** — all projects with status, grouped into `★ Favorites` and per-folder sections; the home screen.
-- **Detail** (`⏎`) — one project's services/containers with their live status, plus an action output log; pick a service with `↑↓` for service-scoped logs/shell.
+- **Detail** (`⏎`) — one project's services/containers with their live status, published ports (`host→container`), live CPU/memory per running service, and an action output log; pick a service with `↑↓` for service-scoped logs/shell.
 - **Logs** (`l`) — full-screen streaming logs.
 
 The whole UI is height-budgeted to the terminal and clips instead of overflowing, so panels never paint on top of each other.
@@ -46,7 +46,7 @@ curl -fsSL https://raw.githubusercontent.com/xtrimsystems/komodo/main/install.sh
 - Pin a version: `KOMODO_VERSION=v0.1.0`.
 - If `~/.local/bin` isn't on your `PATH`, the script prints the line to add.
 
-Once installed, update in place with `komodo --update` — komodo also checks for new releases in the background and hints when one is available.
+Once installed, update in place with `komodo --update` — or press `U` on the in-app hint. komodo checks for new releases in the background (once a day) and hints when one is available; set `KOMODO_NO_UPDATE=1` to disable that check.
 
 ### From source
 

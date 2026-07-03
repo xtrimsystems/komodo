@@ -37,6 +37,20 @@ function computeStatus(serviceCount: number, containers: Container[]): ProjectSt
     return "running";
 }
 
+/**
+ * True when two container snapshots are equivalent for display purposes. Ignores
+ * the volatile human uptime string (e.g. "Up 3 minutes") so idle polls don't
+ * force a repaint; only id/state/health changes count.
+ */
+export function sameContainers(a: Container[], b: Container[]): boolean {
+    if (a.length !== b.length) return false;
+    const sig = (c: Container) => `${c.id}:${c.state}:${c.health ?? ""}`;
+    const sa = a.map(sig).sort();
+    const sb = b.map(sig).sort();
+    for (let i = 0; i < sa.length; i++) if (sa[i] !== sb[i]) return false;
+    return true;
+}
+
 /** Correlate discovered projects with live containers into view models. */
 export function reconcile(projects: Project[], containers: Container[]): ProjectView[] {
     return projects.map((p) => {

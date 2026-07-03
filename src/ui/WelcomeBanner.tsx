@@ -20,7 +20,7 @@ interface Props {
 
 const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`;
 
-export default function WelcomeBanner({
+function WelcomeBanner({
     engineVersion,
     engineOk,
     composeVersion,
@@ -44,3 +44,5 @@ export default function WelcomeBanner({
         </Box>
     );
 }
+
+export default React.memo(WelcomeBanner);

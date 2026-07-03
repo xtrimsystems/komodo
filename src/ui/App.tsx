@@ -8,7 +8,7 @@ import type { Container, MakeTarget, Project, ProjectView } from "../model/types
 import { DockerEngine } from "../docker/engine.js";
 import { discoverProjects } from "../discovery/scan.js";
 import { listSubdirs } from "../discovery/browse.js";
-import { reconcile, serviceRows, type ServiceRow } from "../model/state.js";
+import { reconcile, sameContainers, serviceRows, type ServiceRow } from "../model/state.js";
 import {
     composeDown,
     composeExecShell,
@@ -210,7 +210,8 @@ export default function App({
         if (pollingRef.current) return;
         pollingRef.current = true;
         try {
-            setContainers(await engine.listContainers());
+            const next = await engine.listContainers();
+            setContainers((prev) => (sameContainers(prev, next) ? prev : next));
             setEngineOk(true);
         } catch {
             setEngineOk(false);

@@ -1,5 +1,5 @@
 import { test, expect } from "bun:test";
-import { reconcile, serviceRows } from "./state.js";
+import { reconcile, serviceRows, sameContainers } from "./state.js";
 import type { Container, Project, ContainerState } from "./types.js";
 
 function project(over: Partial<Project> = {}): Project {
@@ -57,6 +57,23 @@ test("status: stopped / partial / running", () => {
         ],
     )[0];
     expect(allUp.status).toBe("running");
+});
+
+test("sameContainers ignores uptime-string churn but catches real changes", () => {
+    const a = [container({ id: "1", status: "Up 3 minutes" })];
+    const uptimeOnly = [container({ id: "1", status: "Up 4 minutes" })];
+    const stateChanged = [container({ id: "1", status: "Exited (0)", state: "exited" })];
+    const healthChanged = [container({ id: "1", status: "Up 3 minutes (healthy)", health: "healthy" })];
+    expect(sameContainers(a, uptimeOnly)).toBe(true);
+    expect(sameContainers(a, stateChanged)).toBe(false);
+    expect(sameContainers(a, healthChanged)).toBe(false);
+    expect(sameContainers(a, [])).toBe(false);
+});
+
+test("sameContainers is order-insensitive", () => {
+    const a = [container({ id: "1" }), container({ id: "2" })];
+    const b = [container({ id: "2" }), container({ id: "1" })];
+    expect(sameContainers(a, b)).toBe(true);
 });
 
 test("serviceRows pairs declared services with their containers", () => {

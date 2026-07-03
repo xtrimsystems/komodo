@@ -45,12 +45,6 @@ export type ContainerState =
 
 export type Health = "healthy" | "unhealthy" | "starting";
 
-export interface Port {
-    private: number;
-    public: number;
-    type: string;
-}
-
 export interface Container {
     id: string;
     name: string;
@@ -65,7 +59,6 @@ export interface Container {
     status: string;
     health?: Health;
     image: string;
-    ports: Port[];
 }
 
 export type ProjectStatus = "running" | "partial" | "stopped";

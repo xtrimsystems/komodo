@@ -24,7 +24,6 @@ function container(over: Partial<Container> = {}): Container {
         state: "running" as ContainerState,
         status: "Up",
         image: "img",
-        ports: [],
         ...over,
     };
 }

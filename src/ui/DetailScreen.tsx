@@ -3,7 +3,6 @@ import { Box, Text } from "ink";
 import Spinner from "ink-spinner";
 import type { ProjectView } from "../model/types.js";
 import type { ServiceRow } from "../model/state.js";
-import type { ContainerStats } from "../docker/engine.js";
 import { containerColor, containerGlyph } from "./theme.js";
 import { Divider } from "./components.js";
 
@@ -16,13 +15,7 @@ interface Props {
     output: string[];
     /** Output scroll: lines up from the bottom (0 = tail). Clamped here for display. */
     scroll: number;
-    stats: Record<string, ContainerStats>;
     busyLabel?: string;
-}
-
-function formatMem(bytes: number): string {
-    if (bytes >= 1 << 30) return (bytes / (1 << 30)).toFixed(1) + "G";
-    return Math.round(bytes / (1 << 20)) + "M";
 }
 
 /**
@@ -55,7 +48,6 @@ export default function DetailScreen({
     columns,
     output,
     scroll,
-    stats,
     busyLabel,
 }: Props) {
     const { servicesArea, outputArea } = detailPanes(bodyRows, rows.length);
@@ -90,25 +82,13 @@ export default function DetailScreen({
                     shownServices.map((r) => {
                         const isSel = rows.indexOf(r) === serviceIndex;
                         const state = r.container?.state ?? "exited";
-                        const ports = r.container?.ports ?? [];
-                        const st = r.container ? stats[r.container.id] : undefined;
                         return (
                             <Box key={r.name}>
                                 <Text color="cyan">{isSel ? "❯" : " "} </Text>
                                 <Text color={containerColor(state, r.container?.health)}>
                                     {containerGlyph(state)}{" "}
                                 </Text>
-                                <Text bold={isSel}>{r.name.padEnd(18).slice(0, 18)} </Text>
-                                {ports.length ? (
-                                    <Text color="cyan">
-                                        {ports.map((p) => `${p.public}→${p.private}`).join(" ")}{" "}
-                                    </Text>
-                                ) : null}
-                                {st ? (
-                                    <Text color="magenta">
-                                        {st.cpu.toFixed(0)}% {formatMem(st.memUsed)}{" "}
-                                    </Text>
-                                ) : null}
+                                <Text bold={isSel}>{r.name.padEnd(20).slice(0, 20)} </Text>
                                 <Text color="gray" wrap="truncate-end">
                                     {r.container ? r.container.status : "not created"}
                                 </Text>

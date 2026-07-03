@@ -22,7 +22,7 @@ The welcome banner is a pixel-art **komodo dragon** rendered in truecolor half-b
 komodo is screen-based rather than cramming everything into one view:
 
 - **List** — all projects with status, grouped into `★ Favorites` and per-folder sections; the home screen.
-- **Detail** (`⏎`) — one project's services/containers with their live status, published ports (`host→container`), live CPU/memory per running service, and an action output log; pick a service with `↑↓` for service-scoped logs/shell.
+- **Detail** (`⏎`) — one project's services/containers with their live status, plus an action output log; pick a service with `↑↓` for service-scoped logs/shell.
 - **Logs** (`l`) — full-screen streaming logs.
 
 The whole UI is height-budgeted to the terminal and clips instead of overflowing, so panels never paint on top of each other.

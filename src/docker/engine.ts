@@ -1,4 +1,4 @@
-import type { Container, ContainerState, Health, Port } from "../model/types.js";
+import type { Container, ContainerState, Health } from "../model/types.js";
 
 /**
  * Minimal Docker Engine API client over the unix socket, using bun's native
@@ -39,16 +39,6 @@ export class DockerEngine {
         return raw.map(mapContainer);
     }
 
-    async stats(id: string): Promise<ContainerStats | null> {
-        try {
-            const r = await this.api(`/containers/${id}/stats?stream=false`);
-            if (!r.ok) return null;
-            return computeStats(await r.json());
-        } catch {
-            return null;
-        }
-    }
-
     /**
      * Stream container lifecycle events (start/stop/die/health_status/…). Calls
      * `onEvent` for each event and resolves when the stream ends or is aborted.
@@ -83,41 +73,11 @@ export class DockerEngine {
     }
 }
 
-export interface ContainerStats {
-    cpu: number;
-    memUsed: number;
-    memLimit: number;
-}
-
-export function computeStats(s: any): ContainerStats | null {
-    if (!s?.cpu_stats || !s?.precpu_stats) return null;
-    const cpuDelta = (s.cpu_stats.cpu_usage?.total_usage ?? 0) - (s.precpu_stats.cpu_usage?.total_usage ?? 0);
-    const sysDelta = (s.cpu_stats.system_cpu_usage ?? 0) - (s.precpu_stats.system_cpu_usage ?? 0);
-    const cores = s.cpu_stats.online_cpus || s.cpu_stats.cpu_usage?.percpu_usage?.length || 1;
-    const cpu = sysDelta > 0 && cpuDelta > 0 ? (cpuDelta / sysDelta) * cores * 100 : 0;
-    const memUsed = (s.memory_stats?.usage ?? 0) - (s.memory_stats?.stats?.inactive_file ?? 0);
-    const memLimit = s.memory_stats?.limit ?? 0;
-    return { cpu, memUsed, memLimit };
-}
-
 function parseHealth(status: string): Health | undefined {
     if (/\(healthy\)/.test(status)) return "healthy";
     if (/\(unhealthy\)/.test(status)) return "unhealthy";
     if (/health: starting/.test(status)) return "starting";
     return undefined;
-}
-
-export function parsePorts(raw: any[]): Port[] {
-    const seen = new Set<string>();
-    const out: Port[] = [];
-    for (const p of raw ?? []) {
-        if (p?.PublicPort == null) continue;
-        const key = `${p.PublicPort}:${p.PrivatePort}/${p.Type}`;
-        if (seen.has(key)) continue;
-        seen.add(key);
-        out.push({ public: p.PublicPort, private: p.PrivatePort, type: p.Type ?? "tcp" });
-    }
-    return out.sort((a, b) => a.public - b.public);
 }
 
 function mapContainer(c: any): Container {
@@ -132,6 +92,5 @@ function mapContainer(c: any): Container {
         status: c.Status || "",
         health: parseHealth(c.Status || ""),
         image: c.Image || "",
-        ports: parsePorts(c.Ports),
     };
 }

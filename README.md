@@ -102,7 +102,7 @@ The release workflow runs the tests; **only if they pass** and that version has 
 | `↑` `↓` / `k` `j` | Move selection |
 | `g` / `G` | Jump to first / last |
 | `⏎` | Open project detail |
-| `s` `x` `d` `e` | compose `up -d` / `stop` / `down` / `restart` |
+| `u` `s` `d` `e` | compose `up -d` / `stop` / `down` / `restart` |
 | `l` | Stream logs (whole project) |
 | `S` | Shell into a running service |
 | `f` | Toggle favorite (pins to the `★ Favorites` section) |
@@ -111,11 +111,13 @@ The release workflow runs the tests; **only if they pass** and that version has 
 | `esc` | Clear an applied filter |
 | `,` | Open the folders/settings screen |
 | `r` / `R` | Refresh status / rescan folders |
+| `?` | Show all keyboard shortcuts |
+| `U` | Update komodo (when a new release is offered) |
 | `q` / `Ctrl-C` | Quit |
 
-**Detail screen** — `↑↓` pick a service · `s/x/d/e` project actions · `l` logs (selected service) · `S` shell (selected service) · `m` make · `esc` back.
+**Detail screen** — `↑↓` pick a service · `u/s/d/e` project actions · `l` logs (selected service) · `S` shell (selected service) · `m` make · `PgUp/PgDn` or `^U`/`^D` scroll output · `esc` back.
 
-**Logs screen** — `c` clear · `esc` back.
+**Logs screen** — `↑↓` / mouse wheel scroll · `PgUp/PgDn` or `^U`/`^D` page · `g` / `G` oldest / newest · `c` clear · `esc` back.
 
 **Make palette / filter** — type to fuzzy-filter · `↑↓` select · `⏎` run/apply · `esc` cancel.
 
